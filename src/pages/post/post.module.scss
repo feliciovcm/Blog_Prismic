@@ -1,1 +1,45 @@
-// TODO
+.postContainer {
+  nav {
+    & + img {
+      width: 100%;
+    }
+    width: 100%;
+    max-width: 721px;
+    margin: 2.5rem auto;
+  }
+
+  .postContent {
+    max-width: 721px;
+    margin: 6rem auto;
+
+    .headingContainer {
+      margin-bottom: 4rem;
+
+      h1 {
+        margin-bottom: 1.5rem;
+        font-size: 3.2rem;
+      }
+      span {
+        margin-right: 1.5rem;
+        font-size: 1rem;
+      }
+    }
+
+    .contentContainer {
+      h3 {
+        font-size: 2.4rem;
+        line-height: 140%;
+        margin-bottom: 2.5rem;
+      }
+      p {
+        font-size: 1.125rem;
+        line-height: 140%;
+        text-align: justify;
+
+        & + h3 {
+          margin-top: 2.5rem;
+        }
+      }
+    }
+  }
+}
