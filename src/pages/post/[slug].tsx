@@ -3,6 +3,7 @@ import { format, parseISO } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
 import Prismic from '@prismicio/client';
+import { useRouter } from 'next/router';
 import { getPrismicClient } from '../../services/prismic';
 import Header from '../../components/Header';
 import styles from './post.module.scss';
@@ -32,6 +33,11 @@ interface PostProps {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export default function Post({ post }: PostProps) {
   const { content } = post.data;
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <div>Carregando...</div>;
+  }
 
   const wordCount = content
     .map(item => {
@@ -69,12 +75,12 @@ export default function Post({ post }: PostProps) {
         </div>
         <div className={styles.contentContainer}>
           {post.data.content.map(contentItem => (
-            <>
-              <h3 key={contentItem.heading}>{contentItem.heading}</h3>
+            <div key={Math.random()}>
+              <h3>{contentItem.heading}</h3>
               {contentItem.body.map(bodyPart => (
-                <p key={bodyPart.text}>{bodyPart.text}</p>
+                <p key={Math.random()}>{bodyPart.text}</p>
               ))}
-            </>
+            </div>
           ))}
         </div>
       </div>
@@ -86,13 +92,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
   const response = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
-    {}
+    { fetch: ['posts.uid'], pageSize: 100 }
   );
 
   const paths = [{ params: { slug: response.results[0].uid } }];
   return {
     paths,
-    fallback: 'blocking',
+    fallback: true,
   };
 };
 
