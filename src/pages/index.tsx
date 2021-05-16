@@ -8,11 +8,11 @@ import { format, parseISO } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import Header from '../components/Header';
 
 import { getPrismicClient } from '../services/prismic';
 
-import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
 
 interface Post {
@@ -54,7 +54,9 @@ export default function Home({ postsPagination }: HomeProps) {
       <div className={styles.postContainer}>
         {results.map(post => (
           <div key={post.uid} className={styles.posts}>
-            <h1>{post.data.title}</h1>
+            <Link href={`/post/${post.uid}`}>
+              <h1>{post.data.title}</h1>
+            </Link>
             <p>{post.data.subtitle}</p>
             <span>
               <FiCalendar className={styles.icons} />{' '}
@@ -68,7 +70,9 @@ export default function Home({ postsPagination }: HomeProps) {
         {nextPagePosts.length > 0 &&
           nextPagePosts.map(newPost => (
             <div key={newPost.uid} className={styles.posts}>
-              <h1>{newPost.data.title}</h1>
+              <Link href={`/post/${newPost.uid}`}>
+                <h1>{newPost.data.title}</h1>
+              </Link>
               <p>{newPost.data.subtitle}</p>
               <span>
                 <FiCalendar className={styles.icons} />{' '}

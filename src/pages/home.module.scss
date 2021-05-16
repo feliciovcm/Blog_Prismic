@@ -23,6 +23,14 @@
       color: var(--heading);
       margin-bottom: 0.625rem;
       line-height: 2rem;
+      cursor: pointer;
+      display: inline-block;
+
+      transition: color 0.2s;
+
+      &:hover {
+        color: var(--highlight);
+      }
     }
 
     p {

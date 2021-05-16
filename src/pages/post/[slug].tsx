@@ -1,9 +1,10 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { format, parseISO } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { FiCalendar, FiClock, FiUser } from 'react-icons/fi';
+import Prismic from '@prismicio/client';
 import { getPrismicClient } from '../../services/prismic';
 import Header from '../../components/Header';
-import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 
 interface Post {
@@ -30,6 +31,20 @@ interface PostProps {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export default function Post({ post }: PostProps) {
+  const { content } = post.data;
+
+  const wordCount = content
+    .map(item => {
+      const headingWordCount = item.heading.split(' ').length;
+      const bodyWordCount = item.body.reduce((accbody, currentbody) => {
+        return accbody + currentbody.text.split(' ').length;
+      }, 0);
+      return headingWordCount + bodyWordCount;
+    })
+    .reduce((acc, current) => acc + current);
+
+  const readingTime = Math.ceil(wordCount / 200);
+
   return (
     <div className={styles.postContainer}>
       <Header />
@@ -38,17 +53,26 @@ export default function Post({ post }: PostProps) {
         <div className={styles.headingContainer}>
           <h1>{post.data.title}</h1>
           <p>
-            <span>{post.first_publication_date}</span>
-            <span>{post.data.author}</span>
-            <span>4 min</span>
+            <span>
+              <FiCalendar className={styles.icons} />
+              {post.first_publication_date}
+            </span>
+            <span>
+              <FiUser className={styles.icons} />
+              {post.data.author}
+            </span>
+            <span>
+              <FiClock className={styles.icons} />
+              {readingTime} min
+            </span>
           </p>
         </div>
         <div className={styles.contentContainer}>
-          {post.data.content.map(content => (
+          {post.data.content.map(contentItem => (
             <>
-              <h3>{content.heading}</h3>
-              {content.body.map(bodyPart => (
-                <p>{bodyPart.text}</p>
+              <h3 key={contentItem.heading}>{contentItem.heading}</h3>
+              {contentItem.body.map(bodyPart => (
+                <p key={bodyPart.text}>{bodyPart.text}</p>
               ))}
             </>
           ))}
@@ -60,9 +84,14 @@ export default function Post({ post }: PostProps) {
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
-  const paths = [];
+  const response = await prismic.query(
+    [Prismic.Predicates.at('document.type', 'posts')],
+    {}
+  );
+
+  const paths = [{ params: { slug: response.results[0].uid } }];
   return {
-    paths: [],
+    paths,
     fallback: 'blocking',
   };
 };
