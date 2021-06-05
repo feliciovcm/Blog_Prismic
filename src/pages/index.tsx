@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { GetStaticProps } from 'next';
 
 import { FiCalendar, FiUser } from 'react-icons/fi';
@@ -22,7 +20,7 @@ interface Post {
     subtitle: string;
     author: string;
   };
-  last_publication_date: string | null;
+  first_publication_date: string | null;
 }
 
 interface PostPagination {
@@ -34,12 +32,12 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
+export default function Home({ postsPagination }: HomeProps): JSX.Element {
   const { results, next_page } = postsPagination;
   const [nextPage, setNextPage] = useState(next_page);
   const [nextPagePosts, setNextPagePosts] = useState<Post[]>([]);
 
-  const fetchNextPagePosts = async () => {
+  const fetchNextPagePosts = async (): Promise<void> => {
     const response = await fetch(nextPage, {
       method: 'GET',
     }).then(res => res.json());
@@ -60,7 +58,9 @@ export default function Home({ postsPagination }: HomeProps) {
             <p>{post.data.subtitle}</p>
             <span>
               <FiCalendar className={styles.icons} />{' '}
-              {post.last_publication_date}
+              {format(parseISO(post.first_publication_date), 'dd MMM yyyy', {
+                locale: ptBR,
+              })}
             </span>
             <span>
               <FiUser className={styles.icons} /> {post.data.author}
@@ -77,7 +77,7 @@ export default function Home({ postsPagination }: HomeProps) {
               <span>
                 <FiCalendar className={styles.icons} />{' '}
                 {format(
-                  parseISO(newPost.last_publication_date),
+                  parseISO(newPost.first_publication_date),
                   'dd MMM yyyy',
                   {
                     locale: ptBR,
@@ -105,6 +105,7 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.Predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+      orderings: '[document.first_publication_date desc]',
       pageSize: 1,
     }
   );
@@ -117,13 +118,7 @@ export const getStaticProps: GetStaticProps = async () => {
         subtitle: post.data.subtitle,
         author: post.data.author,
       },
-      last_publication_date: format(
-        parseISO(post.last_publication_date),
-        'dd MMM yyyy',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
     };
   });
 

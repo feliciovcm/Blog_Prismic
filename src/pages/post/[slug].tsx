@@ -29,9 +29,7 @@ interface PostProps {
   post: Post;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export default function Post({ post }: PostProps) {
+export default function Post({ post }: PostProps): JSX.Element {
   const { content } = post.data;
   const router = useRouter();
 
@@ -61,7 +59,9 @@ export default function Post({ post }: PostProps) {
           <p>
             <span>
               <FiCalendar className={styles.icons} />
-              {post.first_publication_date}
+              {format(parseISO(post.first_publication_date), 'dd MMM yyyy', {
+                locale: ptBR,
+              })}
             </span>
             <span>
               <FiUser className={styles.icons} />
@@ -92,31 +92,30 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
   const response = await prismic.query(
     [Prismic.Predicates.at('document.type', 'posts')],
-    { fetch: ['posts.uid'], pageSize: 100 }
+    {
+      fetch: ['posts.uid'],
+      pageSize: 2,
+    }
   );
 
-  const paths = [{ params: { slug: response.results[0].uid } }];
+  const paths = response.results.map(post => ({
+    params: { slug: String(post.uid) },
+  }));
   return {
     paths,
-    fallback: true,
+    fallback: 'blocking',
   };
 };
 
-export const getStaticProps: GetStaticProps = async context => {
-  const { slug } = context.params;
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const { slug } = params;
 
   const prismic = getPrismicClient();
   const response = await prismic.getByUID('posts', String(slug), {});
 
   const post = {
-    slug,
-    first_publication_date: format(
-      parseISO(response.first_publication_date),
-      'dd MMM yyyy',
-      {
-        locale: ptBR,
-      }
-    ),
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
     data: {
       title: response.data.title,
       content: response.data.content,
